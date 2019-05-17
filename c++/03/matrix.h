@@ -1,88 +1,90 @@
-class Matrix {
-    size_t _rows, _cols;
-    int **_m;
-
-    class Row {
-        size_t _col;
+#include <iostream>
+class matrix{
+private:
+    size_t rows, columns;
+    int **m;
+    class MatrixRow{
+    private:
         int *data;
+        size_t size;
     public:
-        Row(size_t col, int *d) :
-                _col(col), data(d) {}
-
-        int& operator[](size_t col) {
-            if (col >= _col) {
+        MatrixRow(size_t size, int* data): size(size), data(data){}
+        int& operator[](size_t ind){
+            if(ind >= size){
                 throw std::out_of_range("");
             }
-            return data[col];
+            return data[ind];
         }
-        const int& operator[](size_t col) const{
-            if (col >= _col)
+        const int& operator[](size_t ind) const{
+            if(ind >= size){
                 throw std::out_of_range("");
-            return data[col];
+            }
+            return data[ind];
         }
     };
-
 public:
-    Matrix(size_t rows, size_t cols) :
-            _rows(rows), _cols(cols), _m(new int *[rows]) {
-        for (size_t i = 0; i < rows; i++) {
-            _m[i] = new int[cols];
+    matrix(size_t rows, size_t columns): rows(rows), columns(columns), m(new int*[rows]){
+        for (size_t i = 0; i < rows; i++){
+            m[i] = new int[columns];
         }
     }
-
-    ~Matrix() {
-        for (size_t i = 0; i < _rows; i++) {
-            delete[] _m[i];
-        }
-        delete[] _m;
+    size_t  getColumns() const{
+        return columns;
     }
-
-    int getRows() {
-        return _rows;
+    size_t getRows() const{
+        return rows;
     }
-
-    int getColumns() {
-        return _cols;
-    }
-
-    Row operator[](size_t row) {
-        if (row < 0 || row >= _rows) {
+    const MatrixRow operator[](size_t row) const{
+        if(row >= rows){
             throw std::out_of_range("");
         }
-        return Row(_cols, _m[row]);
+        return {columns, m[row]};
     }
-
-    const Row operator[](size_t row) const {
-        if (row < 0 || row >= _rows) {
+    MatrixRow operator[](size_t row){
+        if(row >= rows){
             throw std::out_of_range("");
         }
-        return Row(_cols, _m[row]);
+        return {columns, m[row]};
     }
-
-    bool operator==(const Matrix &R) const {
-        if (this->_rows != R._rows || this->_cols != R._cols) {
+    bool operator==(const matrix& matrix) const{
+        if(matrix.getColumns() != columns || matrix.getRows() != rows){
             return false;
         }
-        for (size_t i = 0; i < _rows; i++) {
-            for (size_t j = 0; j < _cols; j++) {
-                if (_m[i][j] != R[i][j]) {
+        for (size_t row = 0; row < rows; row++){
+            for(size_t column = 0; column < columns; column++){
+                if(matrix.m[row][column] != m[row][column]){
                     return false;
                 }
             }
         }
         return true;
     }
-
-    bool operator!=(Matrix &R) const {
-        return !(*this == R);
+    bool operator!=(const matrix& matrix) const{
+        return !(matrix == *this);
     }
-
-    Matrix& operator*=(int factor) {
-        for (size_t i = 0; i < _rows; i++){
-            for (size_t j = 0; j < _cols; j++) {
-                _m[i][j] *= factor;
+    matrix& operator+=(const matrix& matrix){
+        if(matrix.getColumns() != columns || matrix.getRows() != rows){
+            throw std::out_of_range("");
+        }
+        for (size_t row = 0; row < rows; row++){
+            for (size_t column = 0; column < columns; column++){
+                m[row][column] += matrix.m[row][column];
             }
         }
         return *this;
+    }
+    matrix& operator*=(int factor){
+        for (size_t row = 0; row < rows; row++){
+            for (size_t column = 0; column < columns; column++){
+                m[row][column] *= factor;
+            }
+        }
+        return *this;
+    }
+    ~matrix(){
+        for(size_t row = 0; row < rows; row++){
+            delete[] m[row];
+        }
+        delete[] m;
     }
 };
