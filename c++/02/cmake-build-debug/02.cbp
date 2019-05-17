@@ -80,6 +80,9 @@
 				</MakeCommands>
 			</Target>
 		</Build>
+		<Unit filename="C:/Users/admin/Desktop/Repositories/sphere/msu_spring_2019/c++/02/Matrix.h">
+			<Option target="02"/>
+		</Unit>
 		<Unit filename="C:/Users/admin/Desktop/Repositories/sphere/msu_spring_2019/c++/02/main.cpp">
 			<Option target="02"/>
 		</Unit>
