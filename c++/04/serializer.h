@@ -1,102 +1,113 @@
 #pragma once
+#include <iostream>
+#include <sstream>
 
-enum class Error {
+enum class Error
+{
     NoError,
     CorruptedArchive
 };
 
-class Serializer {
-    static constexpr char Separator = ' ';
+class Serializer
+{
     std::ostream &out_;
+    static constexpr char Separator = ' ';
 public:
-    explicit Serializer(std::ostream &out)
-            : out_(out) {
+    explicit Serializer(std::ostream& out)
+            : out_(out)
+    {
     }
 
-    template<class T>
-    Error save(T &object) {
+    template <class T>
+    Error save(T& object)
+    {
         return object.serialize(*this);
     }
 
-    template<class... Args>
-    Error operator()(Args &&... args) {
-        return process(std::forward<Args>(args)...);
+    template <class... ArgsT>
+    Error operator()(ArgsT &&... args)
+    {
+        return process(std::forward<ArgsT>(args)...);
     }
 
 private:
-    void process(bool &val) {
-        if (val)
-            out_ << "true" << Separator;
-        else
-            out_ << "false" << Separator;
-        //return Error::NoError;
+    Error process(bool &val){
+        out_ << (val ? "true" : "false") << Separator;
+        return out_ ? Error::NoError : Error::CorruptedArchive;
     }
-
-    void process(uint64_t val) {
+    Error process(uint64_t& val){
         out_ << val << Separator;
+        return out_ ? Error::NoError : Error::CorruptedArchive;
     }
-
-    template<class T, class... Args>
-    Error process(T &&val, Args &&... args) {
-        process(std::forward<T>(val));
-        process(std::forward<Args>(args)...);
-        return Error::NoError;
+    template <class valT, class... ArgsT>
+    Error process(valT&& val, ArgsT&&... args){
+        Error status = process(std::forward<valT>(val));
+        if(status == Error::CorruptedArchive){
+            return Error::CorruptedArchive;
+        }
+        return process(std::forward<ArgsT>(args)...);
     }
 };
 
-class Deserializer {
-    std::istream &in_;
+
+class Deserializer{
+    std::istream& in_;
 public:
-    explicit Deserializer(std::istream &in)
-            : in_(in) {
+
+    Deserializer(std::istream& in):
+            in_(in)
+    {
     }
 
-    template<class T>
-    Error load(T &object) {
+    template <class T>
+    Error load(T& object){
         return object.serialize(*this);
     }
 
-    template<class... Args>
-    Error operator()(Args &&... args) {
-        return process(std::forward<Args>(args)...);
+    template <class ... ArgsT>
+    Error operator()(ArgsT&& ... args){
+        return process(std::forward<ArgsT>(args)...);
     }
 
 private:
-    Error process(bool &val) {
+    Error process(bool &val){
         std::string text;
         in_ >> text;
 
-        if (text == "true")
+        if (text == "true"){
             val = true;
-        else if (text == "false")
+        }else if (text == "false"){
             val = false;
-        else
+        }else{
             return Error::CorruptedArchive;
-
+        }
         return Error::NoError;
     }
 
-    Error process(uint64_t &val) {
+    Error process(uint64_t& val){
         std::string text;
+        uint64_t temp;
         in_ >> text;
-
-        if (text[0] == '-')
-            return Error::CorruptedArchive;
-        try {
-            val = stoul(text);
+        for(auto digit : text){
+            if(!isdigit(digit)){
+                return Error::CorruptedArchive;
+            }
         }
-        catch (const std::invalid_argument &error) {
+        std::stringstream number(text);
+        number >> temp;
+        if(!number){
             return Error::CorruptedArchive;
         }
-
+        val = temp;
         return Error::NoError;
     }
 
-
-    template<class T, class... Args>
-    Error process(T &&val, Args &&... args) {
-        if (process(val) == Error::NoError)
-            return process(std::forward<Args>(args)...);
-        return Error::CorruptedArchive;
+    template <class valT, class... ArgsT>
+    Error process(valT&& val, ArgsT&&... args){
+        Error status = process(std::forward<valT>(val));
+        if(status == Error::CorruptedArchive){
+            return Error::CorruptedArchive;
+        }
+        return process(std::forward<ArgsT>(args)...);
     }
 };
