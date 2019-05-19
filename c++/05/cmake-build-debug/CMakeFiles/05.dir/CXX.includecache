@@ -1,0 +1,18 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+C:/Users/admin/Desktop/Repositories/sphere/msu_spring_2019/c++/05/main.cpp
+iostream
+-
+condition_variable
+-
+mutex
+-
+thread
+-
+
